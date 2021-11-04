@@ -2,9 +2,58 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Test My Chatbot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            font-family: "Comic Sans MS";
+        }
+
+        body {
+            background-color: whitesmoke;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 450px;
+            width: 90%;
+            background-color: white;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            padding: 12px;
+            border-radius: 6px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        input, textarea {
+            margin: 6px 0;
+            padding: 6px;
+        }
+    </style>
 </head>
 <body>
+<div class="container">
+    <h1>Test my Chatbot :D</h1>
 
+    <form action="/" method="post">
+        <label for="sender">Sender</label>
+        <input id="sender" name="sender"/>
+        <label for="message">Message</label>
+        <textarea rows="6" id="message" name="message"></textarea>
+        <input type="submit" value="Send!">
+    </form>
+</div>
 </body>
 </html>

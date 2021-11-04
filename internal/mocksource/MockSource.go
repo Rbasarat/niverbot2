@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"time"
 )
 
 //go:embed *.html
@@ -15,8 +16,13 @@ type Settings struct {
 	Address string
 }
 
-func NewMockSource(settings Settings) chatbot.SourceConfiguration {
-	webroot := http.FileServer(http.FS(webFiles))
+type MockSource struct {
+	address string
+}
+
+func (m *MockSource) Connect() (error, chan chatbot.Message) {
+	messages := make(chan chatbot.Message)
+	webroot := http.FileServer(http.Dir("internal/mocksource"))
 	server := http.Server{Handler: http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		switch request.Method {
 		case http.MethodOptions:
@@ -24,18 +30,33 @@ func NewMockSource(settings Settings) chatbot.SourceConfiguration {
 		case http.MethodGet:
 			webroot.ServeHTTP(writer, request)
 		case http.MethodPost:
-			// TODO: CUSTOM CONTROLLER
+			err := request.ParseForm()
+			if err != nil {
+				http.Error(writer, "must send form posts", 400)
+				return
+			}
+			sender := request.PostFormValue("sender")
+			message := request.PostFormValue("message")
+			log.Printf("Got mock message: %s - %s", sender, message)
+			messages <- chatbot.Message{
+				Sender: chatbot.User{
+					Username: sender,
+				},
+				Text: message,
+				Date: time.Now(),
+			}
 		}
 	})}
 
 	// Start the server
-	address := settings.Address
+	address := m.address
 	if address == "" {
 		address = ":8888"
 	}
+
 	listener, err := net.Listen("tcp", address)
 	if err != nil {
-		panic(err)
+		return err, nil
 	}
 	go func() {
 		if err := server.Serve(listener); err != http.ErrServerClosed {
@@ -44,10 +65,11 @@ func NewMockSource(settings Settings) chatbot.SourceConfiguration {
 	}()
 	log.Printf("started mock service on %s", listener.Addr().String())
 
-	return nil
+	return nil, messages
 }
 
-type MockSource struct {
-	address string
-	server  http.Server
+func NewMockSource(settings Settings) chatbot.SourceConfiguration {
+	return &MockSource{
+		address: settings.Address,
+	}
 }

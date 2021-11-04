@@ -7,6 +7,7 @@ type Settings struct {
 }
 
 type SourceConfiguration interface {
+	Connect() (error, chan Message)
 }
 
 func NewChatbot(settings Settings) *Chatbot {
