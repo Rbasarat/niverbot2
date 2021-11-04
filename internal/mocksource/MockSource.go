@@ -20,7 +20,7 @@ type MockSource struct {
 	address string
 }
 
-func (m *MockSource) Connect() (error, chan chatbot.Message) {
+func (m *MockSource) Connect() (chan chatbot.Message, error) {
 	messages := make(chan chatbot.Message)
 	webroot := http.FileServer(http.Dir("internal/mocksource"))
 	server := http.Server{Handler: http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
@@ -56,7 +56,7 @@ func (m *MockSource) Connect() (error, chan chatbot.Message) {
 
 	listener, err := net.Listen("tcp", address)
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 	go func() {
 		if err := server.Serve(listener); err != http.ErrServerClosed {
@@ -65,7 +65,7 @@ func (m *MockSource) Connect() (error, chan chatbot.Message) {
 	}()
 	log.Printf("started mock service on %s", listener.Addr().String())
 
-	return nil, messages
+	return messages, nil
 }
 
 func NewMockSource(settings Settings) chatbot.SourceConfiguration {
